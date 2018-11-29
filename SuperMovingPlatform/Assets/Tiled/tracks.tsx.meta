@@ -1,0 +1,33 @@
+fileFormatVersion: 2
+guid: ed88e186a8441e54db44590a21ec452f
+ScriptedImporter:
+  fileIDToRecycleName:
+    2800000: Atlas_Tracks_1
+    11400000: _TilesetScriptObject
+    11400002: _superAsset
+    11400004: Tile_Tracks_1
+    11400006: Tile_Tracks_2
+    11400008: Tile_Tracks_3
+    11400010: Tile_Tracks_4
+    11400012: Tile_Tracks_5
+    11400014: Tile_Tracks_6
+    21300000: Sprite_Tracks_1
+    21300002: Sprite_Tracks_2
+    21300004: Sprite_Tracks_3
+    21300006: Sprite_Tracks_4
+    21300008: Sprite_Tracks_5
+    21300010: Sprite_Tracks_6
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: cc34d0f3dc257a442819830b408c5322, type: 3}
+  errors: []
+  warnings: []
+  missingSortingLayers: []
+  missingLayers: []
+  pixelsPerUnit: 1
+  edgesPerEllipse: 32
+  useSpriteAtlas: 1
+  atlasWidth: 2048
+  atlasHeight: 2048
