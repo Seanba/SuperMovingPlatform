@@ -6,6 +6,7 @@ ScriptedImporter:
     100002: _MapPrfab/MovingPlatformMap/Foreground
     100004: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track
     100006: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Polyline
+    100008: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)
     100014: _MapPrfab/MovingPlatformMap
     100024: _MapPrfab/MovingPlatformMap/Objects
     100026: _MapPrfab/MovingPlatformMap/Objects/Platform
@@ -13,17 +14,20 @@ ScriptedImporter:
     400002: _MapPrfab/MovingPlatformMap/Foreground/Transform
     400004: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Transform
     400006: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Polyline/Transform
+    400008: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)/Transform
     400014: _MapPrfab/MovingPlatformMap/Transform
     400024: _MapPrfab/MovingPlatformMap/Objects/Transform
     400026: _MapPrfab/MovingPlatformMap/Objects/Platform/Transform
     5000000: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Rigidbody2D
     6600000: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/CompositeCollider2D
     6800000: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Polyline/EdgeCollider2D
+    9500000: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)/Animator
     11400000: _MapPrfab/MovingPlatformMap/Background/MonoBehaviour-SuperTiled2Unity.SuperTileLayer
     11400002: _MapPrfab/MovingPlatformMap/Background/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
     11400004: _MapPrfab/MovingPlatformMap/Foreground/MonoBehaviour-SuperTiled2Unity.SuperTileLayer
     11400006: _MapPrfab/MovingPlatformMap/Foreground/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
     11400008: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Polyline/MonoBehaviour-SuperTiled2Unity.SuperColliderComponent
+    11400010: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)/MonoBehaviour-SuperMovingPlatform.MovingPlatformOnTrack
     11400012: _superAsset
     11400024: _MapPrfab/MovingPlatformMap/MonoBehaviour-SuperTiled2Unity.SuperMap
     11400026: _MapPrfab/MovingPlatformMap/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
@@ -31,6 +35,7 @@ ScriptedImporter:
     11400040: _MapPrfab/MovingPlatformMap/Objects/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
     11400042: _MapPrfab/MovingPlatformMap/Objects/Platform/MonoBehaviour-SuperTiled2Unity.SuperObject
     11400044: _MapPrfab/MovingPlatformMap/Objects/Platform/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
+    21200000: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)/SpriteRenderer
     100100000: _MapPrfab
     2569400265252428798: _MapPrfab/MovingPlatformMap/Grid
     3664157343022684176: _MapPrfab/MovingPlatformMap/Background/TilemapRenderer
@@ -51,5 +56,5 @@ ScriptedImporter:
   tilesAsObjects: 0
   importSorting: 0
   isIsometric: 0
-  customImporterClassName: SuperMovingPlatformEditor.TrackCustomImporter
+  customImporterClassName: SuperMovingPlatform.TrackCustomImporter
   internalTilesets: []
