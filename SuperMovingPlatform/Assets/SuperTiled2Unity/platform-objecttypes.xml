@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objecttypes>
+ <objecttype name="MovingPlatform" color="#ff0000">
+  <property name="Direction_x" type="float" default="1"/>
+  <property name="Direction_y" type="float" default="1"/>
+  <property name="Speed" type="float" default="64"/>
+ </objecttype>
+</objecttypes>

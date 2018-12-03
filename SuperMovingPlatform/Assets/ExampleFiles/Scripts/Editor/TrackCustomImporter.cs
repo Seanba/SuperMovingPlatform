@@ -20,22 +20,6 @@ namespace SuperMovingPlatform
             InstantiateMovingPlatforms();
         }
 
-        private GameObject InstantiateResource(string name, SuperObject marker)
-        {
-            var go = Resources.Load("MovingPlatform");
-
-            if (go != null)
-            {
-                return UnityEngine.Object.Instantiate(go, marker.transform) as GameObject;
-            }
-            else
-            {
-                m_ImportedArgs.AssetImporter.ReportError("MovingPlatform resource not found.");
-            }
-
-            return null;
-        }
-
         private void InstantiateMovingPlatforms()
         {
             // Find all Tiled Objects in our map that are the moving platform type
@@ -47,21 +31,39 @@ namespace SuperMovingPlatform
             foreach (var marker in platforms)
             {
                 // Instantiate the sprite for our moving platform
-                var goPlatfrom = InstantiateResource("MovingPlatform", marker);
-                if (goPlatfrom == null)
-                    continue;
-
-                var compPlatform = goPlatfrom.GetComponent<MovingPlatformOnTrack>();
-
-                // Initialize the data // fixit - properties and stuff
-                //var props = marker.GetComponent<SuperCustomProperties>();
-                //props.try
-
-                foreach (var track in tracks)
+                var compPlatform = InstantiateMovingPlatform("MovingPlatform", marker);
+                if (compPlatform != null)
                 {
-                    compPlatform.AssignTrackIfClose(track);
+                    // Find a track for our platform to be attached to
+                    foreach (var track in tracks)
+                    {
+                        if (compPlatform.AssignTrackIfClose(track))
+                        {
+                            break;
+                        }
+                    }
                 }
             }
+        }
+
+        private MovingPlatformOnTrack InstantiateMovingPlatform(string name, SuperObject marker)
+        {
+            var go = Resources.Load("MovingPlatform");
+            if (go == null)
+            {
+                m_ImportedArgs.AssetImporter.ReportError("MovingPlatform resource not found.");
+                return null;
+            }
+
+            var goPlatform = UnityEngine.Object.Instantiate(go, marker.transform) as GameObject;
+            var compPlatform = goPlatform.GetComponent<MovingPlatformOnTrack>();
+
+            // Custom properties can control platform speed and inital direction
+            compPlatform.m_Speed = marker.gameObject.GetSuperPropertyValueFloat("Speed", 64.0f);
+            compPlatform.m_InitialDirection.x = marker.gameObject.GetSuperPropertyValueFloat("Direction_x", 1.0f);
+            compPlatform.m_InitialDirection.y = marker.gameObject.GetSuperPropertyValueFloat("Direction_y", 1.0f);
+
+            return compPlatform;
         }
     }
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.1.6" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="16" tileheight="16" infinite="0" nextobjectid="4">
+<map version="1.2" tiledversion="1.2.1" orientation="orthogonal" renderorder="right-down" width="16" height="14" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="5">
  <tileset firstgid="1" source="omega.tsx"/>
  <tileset firstgid="391" source="tracks.tsx"/>
- <layer name="Background" width="16" height="14">
+ <layer id="1" name="Background" width="16" height="14">
   <data encoding="csv">
 161,161,122,161,161,161,161,161,161,161,161,161,161,161,161,161,
 161,161,161,161,161,161,161,161,161,161,161,161,122,161,161,161,
@@ -20,7 +20,7 @@
 161,157,158,159,161,161,161,161,161,161,161,161,161,161,161,161
 </data>
  </layer>
- <layer name="Foreground" width="16" height="14">
+ <layer id="2" name="Foreground" width="16" height="14">
   <data encoding="csv">
 13,47,48,86,87,87,87,87,87,87,87,87,87,88,47,13,
 91,47,48,0,0,0,0,0,0,0,0,0,0,0,47,91,
@@ -38,8 +38,16 @@
 13,47,8,9,9,9,9,9,9,9,9,9,10,48,47,13
 </data>
  </layer>
- <objectgroup name="Objects">
-  <object id="1" name="Platform" type="MovingPlatform" x="112" y="72">
+ <objectgroup id="3" name="Objects">
+  <object id="1" name="Platform1" type="MovingPlatform" x="56" y="128">
+   <point/>
+  </object>
+  <object id="4" name="Platform2" type="MovingPlatform" x="164" y="104">
+   <properties>
+    <property name="Direction_x" type="float" value="-1"/>
+    <property name="Direction_y" type="float" value="-1"/>
+    <property name="Speed" type="float" value="32"/>
+   </properties>
    <point/>
   </object>
  </objectgroup>

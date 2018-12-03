@@ -12,13 +12,21 @@ namespace SuperMovingPlatform
         // How close we need to be to a track to start off attached to it
         private const float MaxDistanceFromTrack = 16.0f;
 
-        public bool m_IsCounterClockwise = true; // fixit - hook up and override with properties
-        public float m_VelocityPixelsPerSecond = 64.0f; // fixit - control through properties
+        // Speed is in pixels per second
+        public float m_Speed = 64.0f;
+        public Vector2 m_InitialDirection = Vector2.one;
 
-        // This platform is always placed between two points on a track
-        // fixit - make private but serializable
-        public Vector2[] m_Points;
-        public int m_CurrentPointIndex = -1;
+        // The path of this platform is made up of points from an edge collider
+        [SerializeField, HideInInspector]
+        private Vector2[] m_Points;
+
+        // Our current index between two edges of a path
+        [SerializeField, HideInInspector]
+        private int m_CurrentPointIndex = -1;
+
+        // How we are going to advance through our edges (-1 or 1)
+        [SerializeField, HideInInspector]
+        private int m_IndexAdvance = 1;
 
         public bool AssignTrackIfClose(EdgeCollider2D track)
         {
@@ -56,6 +64,21 @@ namespace SuperMovingPlatform
             // Are we close enough to the track to be attached to it?
             if (minDistance < MaxDistanceFromTrack)
             {
+                // Use projection and initial direction to determine how we should travel from one edge to another along our track
+                var nextIndex = (ptIndex + 1) % points.Length;
+                var A = points[ptIndex];
+                var B = points[nextIndex];
+                if (Vector2.Dot(B - A, m_InitialDirection) < 0)
+                {
+                    // Reverse track direction
+                    m_IndexAdvance = -1;
+                    ptIndex = nextIndex;
+                }
+                else
+                {
+                    m_IndexAdvance = 1;
+                }
+
                 m_CurrentPointIndex = ptIndex;
                 m_Points = points;
                 gameObject.transform.position = ptOnTrack;
@@ -100,12 +123,20 @@ namespace SuperMovingPlatform
 
         private float MoveAlongTrack(float t)
         {
-            // fixit - use direction from properties
-
             // Move along an edge of our track as much as we can
             // If we end up stopping at an edge then return the portion of movement that is left over
+            int numPoints = m_Points.Length;
             int i = m_CurrentPointIndex;
-            int j = (m_CurrentPointIndex + 1) % m_Points.Length;
+            int j = m_CurrentPointIndex + m_IndexAdvance;
+
+            if (j < 0)
+            {
+                j = numPoints - 1;
+            }
+            else if (j >= numPoints)
+            {
+                j = 0;
+            }
 
             var A = m_Points[i];
             var B = m_Points[j];
@@ -114,7 +145,7 @@ namespace SuperMovingPlatform
             var dv = BA.normalized;
 
             var posCurrent = (Vector2)gameObject.transform.position;
-            var posDesired = posCurrent + (dv * m_VelocityPixelsPerSecond * Time.deltaTime * t);
+            var posDesired = posCurrent + (dv * m_Speed * Time.deltaTime * t);
 
             var V1A = posCurrent - A;
             var V2A = posDesired - A;
