@@ -98,6 +98,7 @@ namespace SuperTiled2Unity.Editor
                         // Create the renderer for the layer
                         var renderer = goChunk.AddComponent<TilemapRenderer>();
                         renderer.sortOrder = MapRenderConverter.Tiled2Unity(m_MapComponent.m_RenderOrder);
+                        AssignMaterial(renderer);
                         AssignSortingLayer(renderer, superComp.m_SortingLayerName, superComp.m_SortingOrder);
                     }
 
@@ -119,6 +120,7 @@ namespace SuperTiled2Unity.Editor
                     // Create the renderer for the layer
                     var renderer = goLayer.AddComponent<TilemapRenderer>();
                     renderer.sortOrder = MapRenderConverter.Tiled2Unity(m_MapComponent.m_RenderOrder);
+                    AssignMaterial(renderer);
                     AssignSortingLayer(renderer, superComp.m_SortingLayerName, superComp.m_SortingOrder);
                 }
 
@@ -141,7 +143,7 @@ namespace SuperTiled2Unity.Editor
             var tileIds = ReadTileIdsFromChunk(chunk);
             PlaceTiles(goTilemap, chunk, tileIds);
 
-            m_CurrentCollisionBuilder.Build();
+            m_CurrentCollisionBuilder.Build(this);
             m_CurrentCollisionBuilder = null;
         }
 
@@ -199,7 +201,7 @@ namespace SuperTiled2Unity.Editor
                     }
                     else if (!badTiles.Contains(tileId.JustTileId))
                     {
-                        ReportError("Could not find tile {0}. Your imported map will have holes until this is fixed.", tileId.JustTileId);
+                        ReportError("Could not find tile {0}. Make sure the tilesets were successfully imported.", tileId.JustTileId);
                         badTiles.Add(tileId.JustTileId);
                     }
                 }
@@ -282,6 +284,7 @@ namespace SuperTiled2Unity.Editor
             var renderer = goTRS.AddComponent<SpriteRenderer>();
             renderer.sprite = tile.m_Sprite;
             renderer.color = color;
+            AssignMaterial(renderer);
             AssignSortingLayer(renderer, superLayer.m_SortingLayerName, superLayer.m_SortingOrder);
 
             if (!tile.m_AnimationSprites.IsEmpty())

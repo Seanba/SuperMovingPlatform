@@ -18,6 +18,10 @@ namespace SuperTiled2Unity.Editor
         [SerializeField] private float m_PixelsPerUnit = 0.0f;
         [SerializeField] private int m_EdgesPerEllipse = 0;
 
+#pragma warning disable 414
+        [SerializeField] private int m_NumberOfObjectsImported = 0;
+#pragma warning restore 414
+
         public SuperImportContext SuperImportContext { get; private set; }
 
         public void AddSuperCustomProperties(GameObject go, XElement xProperties)
@@ -59,9 +63,23 @@ namespace SuperTiled2Unity.Editor
             renderer.sortingOrder = sortOrder;
         }
 
+        public void AssignMaterial(Renderer renderer)
+        {
+            // Has the user chosen to override the material used for our tilemaps and sprite objects?
+            if (SuperImportContext.Settings.DefaultMaterial != null)
+            {
+                renderer.material = SuperImportContext.Settings.DefaultMaterial;
+            }
+        }
+
         protected override void InternalOnImportAsset()
         {
             WrapImportContext(AssetImportContext);
+        }
+
+        protected override void InternalOnImportAssetCompleted()
+        {
+            m_NumberOfObjectsImported = SuperImportContext.GetNumberOfObjects();
         }
 
         protected void AssignUnityTag(SuperCustomProperties properties)

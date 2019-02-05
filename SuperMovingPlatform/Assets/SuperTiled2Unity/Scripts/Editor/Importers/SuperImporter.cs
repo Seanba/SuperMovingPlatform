@@ -51,6 +51,7 @@ namespace SuperTiled2Unity.Editor
             try
             {
                 InternalOnImportAsset();
+                InternalOnImportAssetCompleted();
             }
             catch (TiledException tiled)
             {
@@ -79,7 +80,7 @@ namespace SuperTiled2Unity.Editor
 
         public void AddAssetPathDependency(string assetPath)
         {
-            m_SuperAsset.AddDependency(assetPath);
+            m_SuperAsset.AddDependency(AssetImportContext, assetPath);
         }
 
         public T RequestAssetAtPath<T>(string path) where T : UnityEngine.Object
@@ -102,7 +103,7 @@ namespace SuperTiled2Unity.Editor
                 if (AssetPath.TryAbsoluteToAsset(ref path))
                 {
                     // Keep track that the the asset is a dependency
-                    m_SuperAsset.AddDependency(path);
+                    m_SuperAsset.AddDependency(AssetImportContext, path);
 
                     // In most cases our dependency is already known by the AssetDatabase
                     T asset = AssetDatabase.LoadAssetAtPath<T>(path);
@@ -170,6 +171,7 @@ namespace SuperTiled2Unity.Editor
         }
 
         protected abstract void InternalOnImportAsset();
+        protected abstract void InternalOnImportAssetCompleted();
 
         private void ReportUnityVersionError()
         {

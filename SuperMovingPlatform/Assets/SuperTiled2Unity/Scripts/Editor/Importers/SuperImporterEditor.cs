@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
+using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 
 namespace SuperTiled2Unity.Editor
@@ -39,8 +40,19 @@ namespace SuperTiled2Unity.Editor
             }
             else
             {
-                // Force Unity to stop OnGUI calls for this editor
-                GUIUtility.ExitGUI();
+                ForceDeselectAndExit();
+            }
+        }
+
+        protected override void OnHeaderGUI()
+        {
+            if (assetTarget != null)
+            {
+                base.OnHeaderGUI();
+            }
+            else
+            {
+                ForceDeselectAndExit();
             }
         }
 
@@ -80,15 +92,16 @@ namespace SuperTiled2Unity.Editor
             {
                 if (TargetAssetImporter.Errors.Any())
                 {
-                    EditorGUILayout.LabelField("There were errors importing " + this.TargetAssetImporter.assetPath, EditorStyles.boldLabel);
-                    EditorGUILayout.HelpBox(string.Join("\n\n", this.TargetAssetImporter.Errors.Take(10).ToArray()), MessageType.Error);
+                    var asset = Path.GetFileName(TargetAssetImporter.assetPath);
+                    EditorGUILayout.LabelField("There were errors importing " + asset, EditorStyles.boldLabel);
+                    EditorGUILayout.HelpBox(string.Join("\n\n", TargetAssetImporter.Errors.Take(10).ToArray()), MessageType.Error);
                     EditorGUILayout.Separator();
                 }
 
                 if (TargetAssetImporter.Warnings.Any())
                 {
-                    EditorGUILayout.LabelField("There were warnings importing " + this.TargetAssetImporter.assetPath, EditorStyles.boldLabel);
-                    EditorGUILayout.HelpBox(string.Join("\n\n", this.TargetAssetImporter.Warnings.Take(10).ToArray()), MessageType.Warning);
+                    EditorGUILayout.LabelField("There were warnings importing " + TargetAssetImporter.assetPath, EditorStyles.boldLabel);
+                    EditorGUILayout.HelpBox(string.Join("\n\n", TargetAssetImporter.Warnings.Take(10).ToArray()), MessageType.Warning);
                     EditorGUILayout.Separator();
                 }
             }
@@ -151,7 +164,11 @@ namespace SuperTiled2Unity.Editor
             {
                 if (GUILayout.Button("Open Tag Manager"))
                 {
+#if UNITY_2018_3_OR_NEWER
+                    SettingsService.OpenProjectSettings("Project/Tags and Layers");
+#else
                     EditorApplication.ExecuteMenuItem("Edit/Project Settings/Tags and Layers");
+#endif
                 }
 
                 if (GUILayout.Button("Reimport"))
@@ -182,6 +199,8 @@ namespace SuperTiled2Unity.Editor
 
             using (new GuiScopedIndent())
             {
+                DisplayObjectCount();
+
                 using (new GuiScopedIndent())
                 {
                     var title = string.Format("Dependencies ({0})", depends.Dependencies.Count());
@@ -200,7 +219,7 @@ namespace SuperTiled2Unity.Editor
                             var current = Event.current;
                             if (clickArea.Contains(current.mousePosition) && current.type == EventType.ContextClick)
                             {
-                                var text = string.Format("Remport '{0}'", Path.GetFileName(asset));
+                                var text = string.Format("Reimport '{0}'", Path.GetFileName(asset));
 
                                 var menu = new GenericMenu();
                                 menu.AddItem(new GUIContent(text), false, MenuCallbackReimport, asset);
@@ -229,6 +248,18 @@ namespace SuperTiled2Unity.Editor
             }
         }
 
+        private void DisplayObjectCount()
+        {
+            var numberOfObjectsProperty = serializedObject.FindProperty("m_NumberOfObjectsImported");
+            if (numberOfObjectsProperty != null)
+            {
+                var title = string.Format("Object Count: {0}", numberOfObjectsProperty.intValue);
+                var tip = "The number of objects imported into this asset.";
+                var content = new GUIContent(title, tip);
+                EditorGUILayout.LabelField(content, EditorStyles.label);
+            }
+        }
+
         private Color GetBackgroundColor()
         {
             if (TargetAssetImporter.Errors.Any())
@@ -247,6 +278,14 @@ namespace SuperTiled2Unity.Editor
         {
             string assetPath = asset.ToString();
             AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+        }
+
+        private void ForceDeselectAndExit()
+        {
+            // Force Unity to null out select and stop OnGUI calls for this editor
+            // This is unfortunate but necessary under re-import edge conditions
+            Selection.objects = new UnityEngine.Object[0];
+            GUIUtility.ExitGUI();
         }
 
         // Conitional compiles

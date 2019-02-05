@@ -174,6 +174,11 @@ namespace SuperTiled2Unity.Editor
             }
             else
             {
+                if (tileset.m_HasErrors)
+                {
+                    ReportError("Errors detected in tileset '{0}'. Check the tileset inspector for more details. Your map may be broken until these are fixed.", source);
+                }
+
                 // Register all the tiles with the tile database for this map
                 m_GlobalTileDatabase.RegisterTileset(firstId, tileset);
             }
@@ -281,6 +286,12 @@ namespace SuperTiled2Unity.Editor
 
         private void DoCustomImporting()
         {
+            ApplyUserImporter();
+            ApplyAutoImporters();
+        }
+
+        private void ApplyUserImporter()
+        {
             if (!string.IsNullOrEmpty(m_CustomImporterClassName))
             {
                 var type = Type.GetType(m_CustomImporterClassName);
@@ -291,30 +302,43 @@ namespace SuperTiled2Unity.Editor
                     return;
                 }
 
-                // Instantiate a custom importer class for specialized projects to use
-                CustomTmxImporter customImporter;
-                try
-                {
-                    customImporter = Activator.CreateInstance(type) as CustomTmxImporter;
-                }
-                catch (Exception e)
-                {
-                    ReportError("Error creating custom importer class. Message = '{0}'", e.Message);
-                    return;
-                }
+                RunCustomImporterType(type);
+            }
+        }
 
-                try
-                {
-                    var args = new TmxAssetImportedArgs();
-                    args.AssetImporter = this;
-                    args.ImportedSuperMap = m_MapComponent;
+        private void ApplyAutoImporters()
+        {
+            foreach (var type in AutoCustomTmxImporterAttribute.GetOrderedAutoImportersTypes())
+            {
+                RunCustomImporterType(type);
+            }
+        }
 
-                    customImporter.TmxAssetImported(args);
-                }
-                catch (Exception e)
-                {
-                    ReportError("Custom importer '{0}' threw an exception. Message = '{1}', Stack:\n{2}", customImporter.GetType().Name, e.Message, e.StackTrace);
-                }
+        private void RunCustomImporterType(Type type)
+        {
+            // Instantiate a custom importer class for specialized projects to use
+            CustomTmxImporter customImporter;
+            try
+            {
+                customImporter = Activator.CreateInstance(type) as CustomTmxImporter;
+            }
+            catch (Exception e)
+            {
+                ReportError("Error creating custom importer class. Message = '{0}'", e.Message);
+                return;
+            }
+
+            try
+            {
+                var args = new TmxAssetImportedArgs();
+                args.AssetImporter = this;
+                args.ImportedSuperMap = m_MapComponent;
+
+                customImporter.TmxAssetImported(args);
+            }
+            catch (Exception e)
+            {
+                ReportError("Custom importer '{0}' threw an exception. Message = '{1}', Stack:\n{2}", customImporter.GetType().Name, e.Message, e.StackTrace);
             }
         }
     }
