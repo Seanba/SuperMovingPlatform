@@ -5,6 +5,8 @@
 [Bb]uilds/
 Assets/AssetStoreTools*
 
+SuperMovingPlatform/Logs/
+
 # Visual Studio cache directory
 .vs/
 
