@@ -49,19 +49,15 @@ namespace SuperTiled2Unity.Editor
             EditorGUILayout.LabelField("Tiled Map Importer Settings", EditorStyles.boldLabel);
             ShowTiledAssetGui();
 
-            EditorGUI.BeginDisabledGroup(TargetAssetImporter.IsIsometric);
             EditorGUILayout.PropertyField(m_TilesAsObjects, m_TilesAsObjectsContent);
             EditorGUI.EndDisabledGroup();
 
-            if (TargetAssetImporter.IsIsometric)
-            {
-                using (new GuiScopedIndent())
-                {
-                    EditorGUILayout.HelpBox("Note: Isometric maps are forced to display tiles as objects.", MessageType.None);
-                }
-            }
-
             m_ImportSorting.intValue = (int)(ImportSorting)EditorGUILayout.EnumPopup(m_ImportSortingContent, (ImportSorting)m_ImportSorting.intValue);
+
+            if (m_ImportSorting.intValue == (int)ImportSorting.CustomSortAxis)
+            {
+                EditorGUILayout.HelpBox("Tip: Custom Sort Axis may require you to set a Transparency Sort Axis for cameras in your project Graphics settings.", MessageType.Info);
+            }
 
             EditorGUILayout.Space();
             ShowCustomImporterGui();

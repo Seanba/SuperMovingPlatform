@@ -47,7 +47,7 @@ namespace SuperTiled2Unity.Editor
             m_SuperAsset = null;
             AssetImportContext = ctx;
 
-#if UNITY_2018_2_OR_NEWER
+#if UNITY_2018_3_OR_NEWER
             try
             {
                 InternalOnImportAsset();
@@ -97,7 +97,7 @@ namespace SuperTiled2Unity.Editor
             }
 
             // The path is either relative to our asset path or is absolute
-            using (new ChDir(this.assetPath))
+            using (new ChDir(assetPath))
             {
                 path = Path.GetFullPath(path);
                 if (AssetPath.TryAbsoluteToAsset(ref path))
@@ -175,7 +175,7 @@ namespace SuperTiled2Unity.Editor
 
         private void ReportUnityVersionError()
         {
-            string error = string.Format("SuperTiled2Unity requires Unity 2018.2 or later. You are using {0}", Application.unityVersion);
+            string error = string.Format("SuperTiled2Unity requires Unity 2018.3 or later. You are using {0}", Application.unityVersion);
             ReportError(error);
             Debug.LogError(error);
         }

@@ -21,6 +21,7 @@ namespace SuperTiled2Unity.Editor
         private GlobalTileDatabase m_GlobalTileDatabase;
         private Dictionary<uint, TilePolygonCollection> m_TilePolygonDatabase;
         private int m_ObjectIdCounter = 0;
+        private int m_TileLayerCounter = 0;
         private LayerSorterHelper m_LayerSorterHelper;
 
         [SerializeField]
@@ -53,6 +54,7 @@ namespace SuperTiled2Unity.Editor
                 ProcessMap(xMap);
             }
 
+            DoPrefabReplacements();
             DoCustomImporting();
         }
 
@@ -64,6 +66,7 @@ namespace SuperTiled2Unity.Editor
 
             m_TilePolygonDatabase = new Dictionary<uint, TilePolygonCollection>();
             m_ObjectIdCounter = 0;
+            m_TileLayerCounter = 0;
             m_LayerSorterHelper = new LayerSorterHelper();
 
             // Create our map and fill it out
@@ -126,7 +129,30 @@ namespace SuperTiled2Unity.Editor
             var grid = m_MapComponent.gameObject.AddComponent<Grid>();
             grid.cellSize = m_MapComponent.CellSize;
 
+            // Todo: figure out what to do about staggered and hex and Y-As-Z isometric
+            switch (m_MapComponent.m_Orientation)
+            {
+#if UNITY_2018_3_OR_NEWER
+                case MapOrientation.Isometric:
+                    grid.cellLayout = GridLayout.CellLayout.Isometric;
+                    break;
+#endif
+                default:
+                    grid.cellLayout = GridLayout.CellLayout.Rectangle;
+                    break;
+            }
+
             m_IsIsometric = m_MapComponent.m_Orientation == MapOrientation.Isometric;
+
+            if (m_ImportSorting == ImportSorting.CustomSortAxis)
+            {
+                // We are going to use only one Tilemap for all tile layers
+                // This requires users to set up a Transparency Sort Axis in their graphics setting
+                // This is they way Unity prefers to handle tilemaps but it does mean some Tiled features are not supported (like layer offsets)
+                // However, for applications where sprites interact visually with the environment this may be the only way forward
+                GetOrAddTilemapComponent(m_MapComponent.gameObject, null);
+            }
+
             return true;
         }
 
@@ -201,7 +227,7 @@ namespace SuperTiled2Unity.Editor
 
             // In the case of internal tilesets, only use an atlas if it will help with seams
             bool useAtlas = xTileset.Element("image") != null;
-            var loader = new TilesetLoader(tileset, this, useAtlas, 1024, 1024);
+            var loader = new TilesetLoader(tileset, this, useAtlas, 2048, 2048);
 
             if (loader.LoadFromXml(xTileset))
             {
@@ -280,6 +306,55 @@ namespace SuperTiled2Unity.Editor
                 foreach (var to in tileObjects)
                 {
                     to.gameObject.AddComponent<OverheadSorterDynamic>();
+                }
+            }
+            else if (m_ImportSorting == ImportSorting.CustomSortAxis)
+            {
+                // Do not perform any sorting. It is in the hands of the sort axis on the camera now.
+                var layers = m_MapComponent.GetComponentsInChildren<SuperLayer>().Where(l => l.GetType() != typeof(SuperGroupLayer));
+
+                foreach (var layer in layers)
+                {
+                    var renderers = layer.GetComponentsInChildren<Renderer>();
+                    foreach (var renderer in renderers)
+                    {
+                        renderer.sortingOrder = 0;
+                    }
+                }
+            }
+            else
+            {
+                ReportError("Unsupported layer/object sorting mode: {0}", m_ImportSorting);
+            }
+        }
+
+        private void DoPrefabReplacements()
+        {
+            // Should any of our objects (from Tiled) be replaced by instanciated prefabs?
+            var supers = m_MapComponent.GetComponentsInChildren<SuperObject>();
+            foreach (var so in supers)
+            {
+                var prefab = SuperImportContext.Settings.GetPrefabReplacement(so.m_Type);
+                if (prefab != null)
+                {
+                    // Replace the super object with the instantiated prefab
+                    var instance = Instantiate(prefab, so.transform.position, so.transform.rotation);
+                    instance.transform.SetParent(so.transform.parent);
+
+                    // Apply custom properties as messages to the instanced prefab
+                    var props = so.GetComponent<SuperCustomProperties>();
+                    if (props != null)
+                    {
+                        foreach (var p in props.m_Properties)
+                        {
+                            instance.gameObject.BroadcastProperty(p);
+                        }
+                    }
+
+                    // Keep the name from Tiled.
+                    string name = so.gameObject.name;
+                    DestroyImmediate(so.gameObject);
+                    instance.name = name;
                 }
             }
         }

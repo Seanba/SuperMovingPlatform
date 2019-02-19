@@ -41,6 +41,8 @@ ScriptedImporter:
     11400022: _MapPrfab/MovingPlatformMap/Objects/Platform2/MovingPlatform(Clone)/MonoBehaviour-SuperMovingPlatform.MovingPlatformOnTrack
     11400024: _MapPrfab/MovingPlatformMap/MonoBehaviour-SuperTiled2Unity.SuperMap
     11400026: _MapPrfab/MovingPlatformMap/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
+    11400028: _MapPrfab/MovingPlatformMap/Background/MonoBehaviour-SuperTiled2Unity.TilemapData
+    11400030: _MapPrfab/MovingPlatformMap/Foreground/MonoBehaviour-SuperTiled2Unity.TilemapData
     11400038: _MapPrfab/MovingPlatformMap/Objects/MonoBehaviour-SuperTiled2Unity.SuperObjectLayer
     11400040: _MapPrfab/MovingPlatformMap/Objects/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
     21200000: _MapPrfab/MovingPlatformMap/Objects/Platform1/MovingPlatform(Clone)/SpriteRenderer
@@ -62,6 +64,7 @@ ScriptedImporter:
   missingLayers: []
   pixelsPerUnit: 1
   edgesPerEllipse: 32
+  numberOfObjectsImported: 2
   tilesAsObjects: 0
   importSorting: 0
   isIsometric: 0
