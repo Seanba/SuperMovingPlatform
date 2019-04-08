@@ -4,69 +4,69 @@ ScriptedImporter:
   fileIDToRecycleName:
     100000: _MapPrfab/MovingPlatformMap/Background
     100002: _MapPrfab/MovingPlatformMap/Foreground
-    100004: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track
-    100006: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Polyline
-    100008: _MapPrfab/MovingPlatformMap/Objects/Platform1
-    100010: _MapPrfab/MovingPlatformMap/Objects/Platform1/MovingPlatform(Clone)
-    100012: _MapPrfab/MovingPlatformMap/Objects/Platform2
+    100004: _MapPrfab/MovingPlatformMap/Objects/Platform
+    100006: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)
     100014: _MapPrfab/MovingPlatformMap
-    100016: _MapPrfab/MovingPlatformMap/Objects/Platform2/MovingPlatform(Clone)
+    100020: _MapPrfab/MovingPlatformMap/Track-Simple
+    100022: _MapPrfab/MovingPlatformMap/Track-Simple/Collision_Track
     100024: _MapPrfab/MovingPlatformMap/Objects
+    100026: _MapPrfab/MovingPlatformMap/Track-Simple/Collision_Track/Polyline
     400000: _MapPrfab/MovingPlatformMap/Background/Transform
     400002: _MapPrfab/MovingPlatformMap/Foreground/Transform
-    400004: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Transform
-    400006: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Polyline/Transform
-    400008: _MapPrfab/MovingPlatformMap/Objects/Platform1/Transform
-    400010: _MapPrfab/MovingPlatformMap/Objects/Platform1/MovingPlatform(Clone)/Transform
-    400012: _MapPrfab/MovingPlatformMap/Objects/Platform2/Transform
+    400004: _MapPrfab/MovingPlatformMap/Objects/Platform/Transform
+    400006: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)/Transform
     400014: _MapPrfab/MovingPlatformMap/Transform
-    400016: _MapPrfab/MovingPlatformMap/Objects/Platform2/MovingPlatform(Clone)/Transform
+    400020: _MapPrfab/MovingPlatformMap/Track-Simple/Transform
+    400022: _MapPrfab/MovingPlatformMap/Track-Simple/Collision_Track/Transform
     400024: _MapPrfab/MovingPlatformMap/Objects/Transform
-    5000000: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Rigidbody2D
-    6600000: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/CompositeCollider2D
-    6800000: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Polyline/EdgeCollider2D
-    9500000: _MapPrfab/MovingPlatformMap/Objects/Platform1/MovingPlatform(Clone)/Animator
-    9500002: _MapPrfab/MovingPlatformMap/Objects/Platform2/MovingPlatform(Clone)/Animator
+    400026: _MapPrfab/MovingPlatformMap/Track-Simple/Collision_Track/Polyline/Transform
+    5000002: _MapPrfab/MovingPlatformMap/Track-Simple/Collision_Track/Rigidbody2D
+    6600002: _MapPrfab/MovingPlatformMap/Track-Simple/Collision_Track/CompositeCollider2D
+    6800002: _MapPrfab/MovingPlatformMap/Track-Simple/Collision_Track/Polyline/EdgeCollider2D
+    9500000: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)/Animator
     11400000: _MapPrfab/MovingPlatformMap/Background/MonoBehaviour-SuperTiled2Unity.SuperTileLayer
     11400002: _MapPrfab/MovingPlatformMap/Background/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
     11400004: _MapPrfab/MovingPlatformMap/Foreground/MonoBehaviour-SuperTiled2Unity.SuperTileLayer
     11400006: _MapPrfab/MovingPlatformMap/Foreground/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
-    11400008: _MapPrfab/MovingPlatformMap/Foreground/Collision_Track/Polyline/MonoBehaviour-SuperTiled2Unity.SuperColliderComponent
-    11400010: _MapPrfab/MovingPlatformMap/Objects/Platform1/MonoBehaviour-SuperTiled2Unity.SuperObject
+    11400008: _MapPrfab/MovingPlatformMap/Objects/Platform/MonoBehaviour-SuperTiled2Unity.SuperObject
+    11400010: _MapPrfab/MovingPlatformMap/Objects/Platform/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
     11400012: _superAsset
-    11400014: _MapPrfab/MovingPlatformMap/Objects/Platform1/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
-    11400016: _MapPrfab/MovingPlatformMap/Objects/Platform1/MovingPlatform(Clone)/MonoBehaviour-SuperMovingPlatform.MovingPlatformOnTrack
-    11400018: _MapPrfab/MovingPlatformMap/Objects/Platform2/MonoBehaviour-SuperTiled2Unity.SuperObject
-    11400020: _MapPrfab/MovingPlatformMap/Objects/Platform2/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
-    11400022: _MapPrfab/MovingPlatformMap/Objects/Platform2/MovingPlatform(Clone)/MonoBehaviour-SuperMovingPlatform.MovingPlatformOnTrack
+    11400014: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)/MonoBehaviour-SuperMovingPlatform.MovingPlatformOnTrack
     11400024: _MapPrfab/MovingPlatformMap/MonoBehaviour-SuperTiled2Unity.SuperMap
     11400026: _MapPrfab/MovingPlatformMap/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
     11400028: _MapPrfab/MovingPlatformMap/Background/MonoBehaviour-SuperTiled2Unity.TilemapData
     11400030: _MapPrfab/MovingPlatformMap/Foreground/MonoBehaviour-SuperTiled2Unity.TilemapData
     11400038: _MapPrfab/MovingPlatformMap/Objects/MonoBehaviour-SuperTiled2Unity.SuperObjectLayer
     11400040: _MapPrfab/MovingPlatformMap/Objects/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
-    21200000: _MapPrfab/MovingPlatformMap/Objects/Platform1/MovingPlatform(Clone)/SpriteRenderer
-    21200002: _MapPrfab/MovingPlatformMap/Objects/Platform2/MovingPlatform(Clone)/SpriteRenderer
+    11400042: _MapPrfab/MovingPlatformMap/Track-Simple/MonoBehaviour-SuperTiled2Unity.SuperTileLayer
+    11400044: _MapPrfab/MovingPlatformMap/Track-Simple/MonoBehaviour-SuperTiled2Unity.SuperCustomProperties
+    11400046: _MapPrfab/MovingPlatformMap/Track-Simple/MonoBehaviour-SuperTiled2Unity.TilemapData
+    11400048: _MapPrfab/MovingPlatformMap/Track-Simple/Collision_Track/Polyline/MonoBehaviour-SuperTiled2Unity.SuperColliderComponent
+    21200000: _MapPrfab/MovingPlatformMap/Objects/Platform/MovingPlatform(Clone)/SpriteRenderer
     100100000: _MapPrfab
     2569400265252428798: _MapPrfab/MovingPlatformMap/Grid
     3664157343022684176: _MapPrfab/MovingPlatformMap/Background/TilemapRenderer
     3664157343022684178: _MapPrfab/MovingPlatformMap/Foreground/TilemapRenderer
+    3664157343022684182: _MapPrfab/MovingPlatformMap/Track-Simple/TilemapRenderer
     8195094279510102542: _MapPrfab/MovingPlatformMap/Background/Tilemap
     8195094279510102544: _MapPrfab/MovingPlatformMap/Foreground/Tilemap
+    8195094279510102548: _MapPrfab/MovingPlatformMap/Track-Simple/Tilemap
   externalObjects: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 1fa25d03934ea624a82bf2fcee6f0873, type: 3}
+  missingFiles: []
   errors: []
   warnings: []
   missingSortingLayers: []
   missingLayers: []
+  missingTags: []
   pixelsPerUnit: 1
   edgesPerEllipse: 32
   numberOfObjectsImported: 2
   tilesAsObjects: 0
-  importSorting: 0
+  sortingMode: 0
   isIsometric: 0
   customImporterClassName: SuperMovingPlatform.TrackCustomImporter
   internalTilesets: []
