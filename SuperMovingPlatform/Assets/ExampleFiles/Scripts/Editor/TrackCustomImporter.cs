@@ -55,10 +55,11 @@ namespace SuperMovingPlatform
                 return null;
             }
 
+            // Add our moving platform to the map
             var goPlatform = UnityEngine.Object.Instantiate(go, marker.transform) as GameObject;
-            var compPlatform = goPlatform.GetComponent<MovingPlatformOnTrack>();
 
             // Custom properties can control platform speed and inital direction
+            var compPlatform = goPlatform.GetComponent<MovingPlatformOnTrack>();
             compPlatform.m_Speed = marker.gameObject.GetSuperPropertyValueFloat("Speed", 64.0f);
             compPlatform.m_InitialDirection.x = marker.gameObject.GetSuperPropertyValueFloat("Direction_x", 1.0f);
             compPlatform.m_InitialDirection.y = marker.gameObject.GetSuperPropertyValueFloat("Direction_y", 1.0f);

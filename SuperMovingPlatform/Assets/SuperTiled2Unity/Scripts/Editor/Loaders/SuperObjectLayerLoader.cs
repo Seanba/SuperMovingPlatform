@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Xml.Linq;
 using SuperTiled2Unity.Editor.Geometry;
 using UnityEngine;
@@ -72,7 +69,7 @@ namespace SuperTiled2Unity.Editor
         private void CreateObject(XElement xObject)
         {
             // Templates may add extra data
-            ApplyTemplate(xObject);
+            Importer.ApplyTemplateToObject(xObject);
 
             // Create the super object and fill it out
             var superObject = CreateSuperObject(xObject);
@@ -83,23 +80,6 @@ namespace SuperTiled2Unity.Editor
 
             // Post processing after custom properties have been set
             PostProcessObject(superObject.gameObject);
-        }
-
-        private void ApplyTemplate(XElement xObject)
-        {
-            var template = xObject.GetAttributeAs("template", "");
-            if (!string.IsNullOrEmpty(template))
-            {
-                var asset = Importer.RequestAssetAtPath<ObjectTemplate>(template);
-                if (asset != null)
-                {
-                    xObject.CombineWithTemplate(asset.m_ObjectXml);
-                }
-                else
-                {
-                    Importer.ReportError("Missing template file: {0}", template);
-                }
-            }
         }
 
         private SuperObject CreateSuperObject(XElement xObject)
@@ -155,19 +135,21 @@ namespace SuperTiled2Unity.Editor
             var xPoint = xObject.Element("point");
             var xText = xObject.Element("text");
 
+            bool collisions = Importer.SuperImportContext.LayerIgnoreMode != LayerIgnoreMode.Collision;
+
             if (superObject.m_TileId != 0)
             {
                 ProcessTileObject(superObject, xObject);
             }
-            else if (xPolygon != null)
+            else if (xPolygon != null && collisions)
             {
                 ProcessPolygonElement(superObject.gameObject, xPolygon);
             }
-            else if (xPolyline != null)
+            else if (xPolyline != null && collisions)
             {
                 ProcessPolylineElement(superObject.gameObject, xPolyline);
             }
-            else if (xEllipse != null)
+            else if (xEllipse != null && collisions)
             {
                 ProcessEllipseElement(superObject.gameObject, xObject);
             }
@@ -180,7 +162,7 @@ namespace SuperTiled2Unity.Editor
                 // A point is simply an empty game object out in space.
                 // We don't need to add anything else
             }
-            else
+            else if (collisions)
             {
                 // Default object is a rectangle
                 ProcessObjectRectangle(superObject.gameObject, xObject);
@@ -259,13 +241,12 @@ namespace SuperTiled2Unity.Editor
             goCF.name = string.Format("{0} (CF)", superObject.m_TiledName);
             goTRS.AddChildWithUniqueName(goCF);
 
-            var toCenter = translateCenter + tileOffset;
-            goCF.transform.localPosition = toCenter;
+            goCF.transform.localPosition = translateCenter + tileOffset;
             goCF.transform.localRotation = Quaternion.Euler(0, 0, 0);
             goCF.transform.localScale = new Vector3(flip_h ? -1 : 1, flip_v ? -1 : 1, 1);
 
             // Note: We may not want to put the tile "back into place" depending on our coordinate system
-            var fromCenter = -toCenter;
+            var fromCenter = -translateCenter;
 
             // Isometric maps referece tile objects by bottom center
             if (SuperMap.m_Orientation == MapOrientation.Isometric)
@@ -280,23 +261,29 @@ namespace SuperTiled2Unity.Editor
             goTile.transform.localRotation = Quaternion.Euler(0, 0, 0);
             goTile.transform.localScale = Vector3.one;
 
-            // Add the renderer
-            var renderer = goTile.AddComponent<SpriteRenderer>();
-            renderer.sprite = tile.m_Sprite;
-            renderer.color = new Color(1, 1, 1, superObject.CalculateOpacity());
-            Importer.AssignMaterial(renderer);
-            Importer.AssignSpriteSorting(renderer);
-
-            // Add the animator if needed
-            if (!tile.m_AnimationSprites.IsEmpty())
+            if (Importer.SuperImportContext.LayerIgnoreMode != LayerIgnoreMode.Visual)
             {
-                var tileAnimator = goTile.AddComponent<TileObjectAnimator>();
-                tileAnimator.m_AnimationFramerate = AnimationFramerate;
-                tileAnimator.m_AnimationSprites = tile.m_AnimationSprites;
+                // Add the renderer
+                var renderer = goTile.AddComponent<SpriteRenderer>();
+                renderer.sprite = tile.m_Sprite;
+                renderer.color = new Color(1, 1, 1, superObject.CalculateOpacity());
+                Importer.AssignMaterial(renderer, m_ObjectLayer.m_TiledName);
+                Importer.AssignSpriteSorting(renderer);
+
+                // Add the animator if needed
+                if (!tile.m_AnimationSprites.IsEmpty())
+                {
+                    var tileAnimator = goTile.AddComponent<TileObjectAnimator>();
+                    tileAnimator.m_AnimationFramerate = AnimationFramerate;
+                    tileAnimator.m_AnimationSprites = tile.m_AnimationSprites;
+                }
             }
 
-            // Add any colliders that were set up on the tile in the collision editor
-            tile.AddCollidersForTileObject(goTile, Importer.SuperImportContext);
+            if (Importer.SuperImportContext.LayerIgnoreMode != LayerIgnoreMode.Collision)
+            {
+                // Add any colliders that were set up on the tile in the collision editor
+                tile.AddCollidersForTileObject(goTile, Importer.SuperImportContext);
+            }
 
             // Store a reference to our tile object
             superObject.m_SuperTile = tile;
@@ -317,7 +304,7 @@ namespace SuperTiled2Unity.Editor
             var composition = new ComposeConvexPolygons();
             var convexPolygons = composition.Compose(triangles);
 
-            PolygonUtils.AddCompositePolygonCollider(goObject, convexPolygons);
+            PolygonUtils.AddCompositePolygonCollider(goObject, convexPolygons, Importer.SuperImportContext);
         }
 
         private void ProcessPolylineElement(GameObject goObject, XElement xPolyline)
@@ -351,9 +338,9 @@ namespace SuperTiled2Unity.Editor
             if (collider != null)
             {
                 CustomProperty isTrigger;
-                if (properties.TryGetCustomProperty("unity:isTrigger", out isTrigger))
+                if (properties.TryGetCustomProperty(StringConstants.Unity_IsTrigger, out isTrigger))
                 {
-                    collider.isTrigger = isTrigger.GetValueAsBool();
+                    collider.isTrigger = Importer.SuperImportContext.GetIsTriggerOverridable(isTrigger.GetValueAsBool());
                 }
             }
 

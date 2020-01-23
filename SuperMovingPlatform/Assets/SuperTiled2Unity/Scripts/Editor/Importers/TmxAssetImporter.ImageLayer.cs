@@ -10,7 +10,7 @@ namespace SuperTiled2Unity.Editor
 {
     partial class TmxAssetImporter
     {
-        private GameObject ProcessImageLayer(GameObject goParent, XElement xLayer)
+        private SuperLayer ProcessImageLayer(GameObject goParent, XElement xLayer)
         {
             Assert.IsNotNull(xLayer);
             Assert.IsNotNull(goParent);
@@ -18,13 +18,6 @@ namespace SuperTiled2Unity.Editor
             // Create the game object that contains the layer and add it to the grid parent
             var layerComponent = goParent.AddSuperLayerGameObject<SuperImageLayer>(new SuperImageLayerLoader(xLayer), SuperImportContext);
             var goLayer = layerComponent.gameObject;
-
-            // This sucks but we have to correct for isometric orientation for image layers
-            if (m_MapComponent.m_Orientation == MapOrientation.Isometric)
-            {
-                float dx = SuperImportContext.MakeScalar(m_MapComponent.m_Height * m_MapComponent.m_TileHeight);
-                goLayer.transform.Translate(-dx, 0, 0);
-            }
 
             AddSuperCustomProperties(goLayer, xLayer.Element("properties"));
 
@@ -51,7 +44,7 @@ namespace SuperTiled2Unity.Editor
                         var renderer = goLayer.AddComponent<SpriteRenderer>();
                         renderer.sprite = sprite;
                         renderer.color = new Color(1, 1, 1, layerComponent.CalculateOpacity());
-                        AssignMaterial(renderer);
+                        AssignMaterial(renderer, layerComponent.m_TiledName);
                         AssignSpriteSorting(renderer);
                     }
                     catch (Exception e)
@@ -61,7 +54,7 @@ namespace SuperTiled2Unity.Editor
                 }
             }
 
-            return goLayer;
+            return layerComponent;
         }
     }
 }

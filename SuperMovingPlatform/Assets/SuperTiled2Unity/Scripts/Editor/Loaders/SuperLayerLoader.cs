@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
-using System.Text;
+﻿using System.Xml.Linq;
 using UnityEngine;
 
 namespace SuperTiled2Unity.Editor
@@ -12,7 +8,7 @@ namespace SuperTiled2Unity.Editor
     {
         protected XElement m_Xml;
 
-        public SuperLayerLoader(XElement xml)
+        protected SuperLayerLoader(XElement xml)
         {
             m_Xml = xml;
         }

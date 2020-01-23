@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using SuperTiled2Unity.Editor.Diablo404;
 using UnityEditor;
@@ -67,7 +65,7 @@ namespace SuperTiled2Unity.Editor
             var xGrid = xTileset.Element("grid");
             if (xGrid != null)
             {
-                m_TilesetScript.m_GridOrientation = xGrid.GetAttributeAs<MapOrientation>("orientation");
+                m_TilesetScript.m_GridOrientation = xGrid.GetAttributeAs<GridOrientation>("orientation");
 
                 var w = xGrid.GetAttributeAs<float>("width", 0.0f);
                 var h = xGrid.GetAttributeAs<float>("height", 0.0f);
@@ -282,6 +280,9 @@ namespace SuperTiled2Unity.Editor
                 {
                     var collision = new CollisionObject();
 
+                    // Template may fill in a bunch of properties
+                    m_Importer.ApplyTemplateToObject(xObject);
+
                     collision.m_ObjectId = xObject.GetAttributeAs("id", 0);
                     collision.m_ObjectName = xObject.GetAttributeAs("name", string.Format("Object_{0}", collision.m_ObjectId));
                     collision.m_ObjectType = xObject.GetAttributeAs("type", "");
@@ -326,12 +327,12 @@ namespace SuperTiled2Unity.Editor
                     {
                         if (collision.m_Size.x == 0)
                         {
-                            m_Importer.ReportError("Invalid ellipse object Id '{0}' in tileset '{1}' has zero width", collision.m_ObjectId, m_TilesetScript.name);
+                            m_Importer.ReportError("Invalid ellipse (Tile ID ='{0}') in tileset '{1}' has zero width", tile.m_TileId, m_TilesetScript.name);
                             m_TilesetScript.m_HasErrors = true;
                         }
                         else if (collision.m_Size.y == 0)
                         {
-                            m_Importer.ReportError("Invalid ellipse object Id '{0}' in tileset '{1}' has zero height", collision.m_ObjectId, m_TilesetScript.name);
+                            m_Importer.ReportError("Invalid ellipse (Tile ID ='{0}') in tileset '{1}' has zero height", tile.m_TileId, m_TilesetScript.name);
                             m_TilesetScript.m_HasErrors = true;
                         }
                         else
@@ -344,12 +345,12 @@ namespace SuperTiled2Unity.Editor
                         // By default, objects are rectangles
                         if (collision.m_Size.x == 0)
                         {
-                            m_Importer.ReportError("Invalid rectangle object Id '{0}' in tileset '{1}' has zero width", collision.m_ObjectId, m_TilesetScript.name);
+                            m_Importer.ReportError("Invalid rectangle (Tile ID ='{0}') in tileset '{1}' has zero width", tile.m_TileId, m_TilesetScript.name);
                             m_TilesetScript.m_HasErrors = true;
                         }
                         else if (collision.m_Size.y == 0)
                         {
-                            m_Importer.ReportError("Invalid rectangle object Id '{0}' in tileset '{1}' has zero height", collision.m_ObjectId, m_TilesetScript.name);
+                            m_Importer.ReportError("Invalid rectangle (Tile ID ='{0}') in tileset '{1}' has zero height", tile.m_TileId, m_TilesetScript.name);
                             m_TilesetScript.m_HasErrors = true;
                         }
                         else
@@ -373,7 +374,7 @@ namespace SuperTiled2Unity.Editor
         private void AssignCollisionObjectProperties(CollisionObject collision, SuperTile tile)
         {
             // Check properties for layer name
-            var layerProperty = GetCollisionOrTileOrTilesetProperty(collision, tile, "unity:layer");
+            var layerProperty = GetCollisionOrTileOrTilesetProperty(collision, tile, StringConstants.Unity_Layer);
             if (layerProperty != null)
             {
                 // Explicit request to assign a layer to a collision. Report errors if the layer is missing.
@@ -395,7 +396,7 @@ namespace SuperTiled2Unity.Editor
             }
 
             // Check properties for trigger setting
-            var triggerProperty = GetCollisionOrTileOrTilesetProperty(collision, tile, "unity:isTrigger");
+            var triggerProperty = GetCollisionOrTileOrTilesetProperty(collision, tile, StringConstants.Unity_IsTrigger);
             if (triggerProperty != null)
             {
                 collision.m_IsTrigger = triggerProperty.GetValueAsBool();

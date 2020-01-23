@@ -28,18 +28,25 @@ namespace SuperTiled2Unity.Editor
 
             if (m_Settings == null)
             {
-                m_Settings = ST2USettings.LoadSettings();
+                m_Settings = ST2USettings.GetOrCreateST2USettings();
 
                 if (m_Settings == null)
                 {
                     // If something goes wrong use some dummy settings
-                    m_Settings = ScriptableObject.CreateInstance<ST2USettings>();
+                    m_Settings = CreateInstance<ST2USettings>();
                 }
             }
 
             if (m_Settings != null)
             {
-                ColliderGizmos.DrawColliders(component.gameObject, m_Settings);
+                if (component.m_PolygonShapes.Count > 0)
+                {
+                    ColliderGizmos.DrawColliderShapes(component, m_Settings);
+                }
+                else
+                {
+                    ColliderGizmos.DrawColliders(component.gameObject, m_Settings);
+                }
             }
         }
     }

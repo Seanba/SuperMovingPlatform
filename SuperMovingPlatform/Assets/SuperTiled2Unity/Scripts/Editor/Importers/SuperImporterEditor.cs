@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
-using UnityEditor.Experimental.UIElements;
 using UnityEngine;
 
 namespace SuperTiled2Unity.Editor
@@ -36,6 +35,9 @@ namespace SuperTiled2Unity.Editor
                 EditorGUILayout.HelpBox(EditorDefinition, MessageType.None);
                 EditorGUILayout.Separator();
 
+#if UNITY_2019_2_OR_NEWER
+                serializedObject.Update();
+#endif
                 InternalOnInspectorGUI();
                 DisplayDependencies();
             }
@@ -84,6 +86,14 @@ namespace SuperTiled2Unity.Editor
             }
         }
 
+        protected void InternalApplyRevertGUI()
+        {
+#if UNITY_2019_2_OR_NEWER
+            serializedObject.ApplyModifiedProperties();
+#endif
+            ApplyRevertGUI();
+        }
+
         protected abstract void InternalOnInspectorGUI();
 
         private void DisplayMissingFileErrors()
@@ -96,17 +106,18 @@ namespace SuperTiled2Unity.Editor
                     EditorGUILayout.LabelField("Missing or misplaced assets!", EditorStyles.boldLabel);
 
                     var msg = new StringBuilder();
+
                     msg.AppendLine(TargetAssetImporter.GetReportHeader());
-                    msg.AppendLine("This asset is dependent on other files that cannot be found.");
+                    msg.AppendLine("This asset is dependent on other files that either cannot be found or they failed to be imported.");
                     msg.AppendLine("Note that all Tiled assets must be imported to Unity in folder locations that keep their relative paths intact.");
                     msg.AppendLine("Reimport this asset once fixes are made.\n");
                     msg.AppendFormat("Tip: Try opening {0} in Tiled to resolve location of missing assets.\n\n", asset);
 
-                    msg.AppendLine(string.Join("\n", TargetAssetImporter.MissingFiles));
+                    msg.AppendLine(string.Join("\n", TargetAssetImporter.MissingFiles.ToArray()));
 
                     EditorGUILayout.HelpBox(msg.ToString(), MessageType.Error);
 
-                    using (new GuiScopedHorizontal())
+                    using (new GUILayout.HorizontalScope())
                     {
                         if (GUILayout.Button("Copy Message to Clipboard"))
                         {
@@ -188,7 +199,7 @@ namespace SuperTiled2Unity.Editor
 
                     using (new GuiScopedIndent())
                     {
-                        StringBuilder message = new StringBuilder("Sorting Layers are missing in your project settings. Open the Tag Manager, add these missing sorting layer, and reimport:");
+                        StringBuilder message = new StringBuilder("Sorting Layers are missing in your project settings. Open the Tag Manager, add these missing sorting layers, and reimport:");
                         message.AppendLine();
                         message.AppendLine();
 
@@ -240,17 +251,14 @@ namespace SuperTiled2Unity.Editor
                 }
             }
 
-            using (new GuiScopedHorizontal())
+            using (new GUILayout.HorizontalScope())
             {
+#if UNITY_2018_3_OR_NEWER
                 if (GUILayout.Button("Open Tag Manager"))
                 {
-#if UNITY_2018_3_OR_NEWER
                     SettingsService.OpenProjectSettings("Project/Tags and Layers");
-#else
-                    EditorApplication.ExecuteMenuItem("Edit/Project Settings/Tags and Layers");
-#endif
                 }
-
+#endif
                 if (GUILayout.Button("Reimport"))
                 {
                     ApplyAndImport();
@@ -382,18 +390,7 @@ namespace SuperTiled2Unity.Editor
 
         // Conitional compiles
 #if UNITY_2018_1_OR_NEWER
-        protected void EditorGUILayout_ColorFieldNoEdit(GUIContent label, Color color)
-        {
-            EditorGUILayout.ColorField(label, color, false, true, false);
-        }
 #else
-        private static ColorPickerHDRConfig m_DummyHDRConfig = new ColorPickerHDRConfig(0, 0, 0, 0);
-
-        protected void EditorGUILayout_ColorFieldNoEdit(GUIContent label, Color color)
-        {
-            EditorGUILayout.ColorField(label, color, false, true, false, m_DummyHDRConfig);
-        }
-
         protected UnityEngine.Object assetTarget
         {
             get

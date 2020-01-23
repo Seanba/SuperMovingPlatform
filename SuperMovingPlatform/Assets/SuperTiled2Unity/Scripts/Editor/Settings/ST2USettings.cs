@@ -1,29 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
-using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using UnityEditor;
 using UnityEngine;
 
 namespace SuperTiled2Unity.Editor
 {
     public class ST2USettings : ScriptableObject
     {
-        [SerializeField]
-        private string m_Version = "unknown";
-        public string Version { get { return m_Version; } }
+        public const string ProjectSettingsPath = "Project/SuperTiled2Unity";
 
         [SerializeField]
         private float m_PixelsPerUnit = 100.0f;
-        public float PixelsPerUnit { get { return m_PixelsPerUnit; } }
-        public float InversePPU { get { return 1.0f / PixelsPerUnit; } }
+        public float PixelsPerUnit
+        {
+            get { return m_PixelsPerUnit; }
+            set { m_PixelsPerUnit = value; }
+        }
 
         [SerializeField]
         private int m_EdgesPerEllipse = 32;
-        public int EdgesPerEllipse { get { return m_EdgesPerEllipse; } }
+        public int EdgesPerEllipse
+        {
+            get { return m_EdgesPerEllipse; }
+            set { m_EdgesPerEllipse = value; }
+        }
 
         [SerializeField]
         private int m_AnimationFramerate = 20;
@@ -34,11 +36,57 @@ namespace SuperTiled2Unity.Editor
         public Material DefaultMaterial { get { return m_DefaultMaterial; } }
 
         [SerializeField]
+        private List<LayerMaterialMatch> m_MaterialMatchings = new List<LayerMaterialMatch>();
+        public List<LayerMaterialMatch> MaterialMatchings { get { return m_MaterialMatchings; } }
+
+        [SerializeField]
         private TextAsset m_ObjectTypesXml = null;
         public TextAsset ObjectTypesXml { get { return m_ObjectTypesXml; } }
 
         [SerializeField]
-        private List<Color> m_LayerColors = new List<Color>(Enumerable.Repeat(NamedColors.LightSteelBlue, 32));
+        private string m_ParseXmlError = string.Empty;
+        public string ParseXmlError { get { return m_ParseXmlError; } }
+
+        [SerializeField]
+        private CompositeCollider2D.GeometryType m_CollisionGeometryType = CompositeCollider2D.GeometryType.Polygons;
+        public CompositeCollider2D.GeometryType CollisionGeometryType { get { return m_CollisionGeometryType; } }
+
+        [SerializeField]
+        private List<Color> m_LayerColors = new List<Color>()
+        {
+            NamedColors.SteelBlue,          // Builtin - Default
+            NamedColors.Tomato,             // Builtin - TransparentFX
+            NamedColors.AliceBlue,          // Builtin - Ignore Raycast
+            NamedColors.MediumPurple,
+            NamedColors.PowderBlue,         // Builtin - Water
+            NamedColors.DarkSeaGreen,       // Builtin - UI
+            NamedColors.Khaki,
+            NamedColors.IndianRed,
+            NamedColors.LightGray,
+            NamedColors.Yellow,
+            NamedColors.SpringGreen,
+            NamedColors.PaleGoldenrod,
+            NamedColors.Bisque,
+            NamedColors.LightSteelBlue,
+            NamedColors.PeachPuff,
+            NamedColors.MistyRose,
+            NamedColors.MintCream,
+            NamedColors.DarkRed,
+            NamedColors.Silver,
+            NamedColors.Orchid,
+            NamedColors.DarkOrchid,
+            NamedColors.DarkOliveGreen,
+            NamedColors.DodgerBlue,
+            NamedColors.WhiteSmoke,
+            NamedColors.Honeydew,
+            NamedColors.LightPink,
+            NamedColors.Plum,
+            NamedColors.GreenYellow,
+            NamedColors.Snow,
+            NamedColors.Orange,
+            NamedColors.Cyan,
+            NamedColors.RosyBrown,
+        };
         public List<Color> LayerColors { get { return m_LayerColors; } }
 
         [SerializeField]
@@ -49,92 +97,83 @@ namespace SuperTiled2Unity.Editor
         private List<TypePrefabReplacement> m_PrefabReplacements = new List<TypePrefabReplacement>();
         public List<TypePrefabReplacement> PrefabReplacements { get { return m_PrefabReplacements; } }
 
-        public void AssignSettings(SuperSettingsImporter importer)
+        public float InversePPU { get { return 1.0f / PixelsPerUnit; } }
+
+        internal static ST2USettings GetOrCreateST2USettings()
         {
-            m_Version = importer.Version;
-            m_PixelsPerUnit = importer.PixelsPerUnit;
-            m_EdgesPerEllipse = importer.EdgesPerEllipse;
-            m_ObjectTypesXml = importer.ObjectTypesXml;
-            m_AnimationFramerate = importer.AnimationFramerate;
-            m_DefaultMaterial = importer.DefaultMaterial;
-            m_LayerColors = importer.LayerColors;
-            FillCustomObjectTypes(importer);
-            AssignPrefabReplacements(importer);
+            var settings = AssetDatabaseEx.LoadFirstAssetByFilterAndExtension<ST2USettings>("t: ST2USettings", "asset");
+            if (settings == null)
+            {
+                // This should only happen when we are first installing SuperTiled2Unity
+                // However, should our settings be deleted we would like them to be recreated
+                settings = SuperTiled2Unity_Config.CreateDefaultSettings();
+            }
+
+            return settings;
         }
 
-        public void DefaultOrOverride_PixelsPerUnit(ref float ppu)
-        {
-            if (ppu == 0)
-            {
-                ppu = Clamper.ClampPixelsPerUnit(m_PixelsPerUnit);
-            }
-            else
-            {
-                m_PixelsPerUnit = Clamper.ClampPixelsPerUnit(ppu);
-            }
-        }
-
-        public void DefaultOrOverride_EdgesPerEllipse(ref int edgesPerEllipse)
-        {
-            if (edgesPerEllipse == 0)
-            {
-                edgesPerEllipse = Clamper.ClampEdgesPerEllipse(m_EdgesPerEllipse);
-            }
-            else
-            {
-                m_EdgesPerEllipse = Clamper.ClampEdgesPerEllipse(edgesPerEllipse);
-            }
-        }
-
-        private void FillCustomObjectTypes(SuperSettingsImporter importer)
+        // Invoke this to ensure that Xml Object Types are up-to-date
+        // Our importers that depend on Object Types from tiled will want to call this early in their import process
+        internal void RefreshCustomObjectTypes()
         {
             m_CustomObjectTypes = new List<CustomObjectType>();
+            m_ParseXmlError = string.Empty;
 
             if (m_ObjectTypesXml != null)
             {
-                XDocument xdoc = XDocument.Parse(m_ObjectTypesXml.text);
-
-                if (xdoc.Root.Name != "objecttypes")
+                try
                 {
-                    importer.ReportError("'{0}' is not a valid object types xml file.", m_ObjectTypesXml.name);
-                    return;
+                    XDocument xdoc = XDocument.Parse(m_ObjectTypesXml.text);
+
+                    if (xdoc.Root.Name != "objecttypes")
+                    {
+                        m_ParseXmlError = string.Format("'{0}' is not a valid object types xml file.", m_ObjectTypesXml.name);
+                    }
+
+                    // Import the data from the objecttype elements
+                    foreach (var xObjectType in xdoc.Descendants("objecttype"))
+                    {
+                        var cot = new CustomObjectType();
+                        cot.m_Name = xObjectType.GetAttributeAs("name", "NoName");
+                        cot.m_Color = xObjectType.GetAttributeAsColor("color", Color.gray);
+                        cot.m_CustomProperties = CustomPropertyLoader.LoadCustomPropertyList(xObjectType);
+
+                        m_CustomObjectTypes.Add(cot);
+                    }
                 }
-
-                // Create a dependency on our Object Types xml file so that settings are automatically updated if it changes
-                importer.AddAssetPathDependency(AssetDatabase.GetAssetPath(m_ObjectTypesXml));
-
-                // Import the data from the objecttype elements
-                foreach (var xObjectType in xdoc.Descendants("objecttype"))
+                catch (XmlException xe)
                 {
-                    var cot = new CustomObjectType();
-                    cot.m_Name = xObjectType.GetAttributeAs("name", "NoName");
-                    cot.m_Color = xObjectType.GetAttributeAsColor("color", Color.gray);
-                    cot.m_CustomProperties = CustomPropertyLoader.LoadCustomPropertyList(xObjectType);
-
-                    m_CustomObjectTypes.Add(cot);
+                    m_ParseXmlError = string.Format("'{0}' is not a valid XML file.\n\nError: {1}", m_ObjectTypesXml.name, xe.Message);
+                    m_CustomObjectTypes.Clear();
+                }
+                catch (Exception e)
+                {
+                    m_ParseXmlError = e.Message;
+                    m_CustomObjectTypes.Clear();
                 }
             }
         }
 
-        public void AssignPrefabReplacements(SuperSettingsImporter importer)
+        public void SortMaterialMatchings()
         {
-            // Clean up the importer settings
-            // Remove any prefab replacements for types that don't exist anymore
-            importer.PrefabReplacements.RemoveAll(r => !m_CustomObjectTypes.Any(t => r.m_TypeName == t.m_Name));
+            m_MaterialMatchings = m_MaterialMatchings.OrderBy(m => m.m_LayerName).ToList();
+        }
 
-            // Add prefab replacements for missing object types
+        public void SortPrefabReplacements()
+        {
+            m_PrefabReplacements = m_PrefabReplacements.OrderBy(p => p.m_TypeName).ToList();
+        }
+
+        public void AddObjectsToPrefabReplacements()
+        {
+            RefreshCustomObjectTypes();
             foreach (var cot in m_CustomObjectTypes)
             {
-                if (!importer.PrefabReplacements.Any(r => cot.m_Name == r.m_TypeName))
+                if (!PrefabReplacements.Any(c => string.Equals(c.m_TypeName, cot.m_Name, StringComparison.OrdinalIgnoreCase)))
                 {
-                    var rep = new TypePrefabReplacement();
-                    rep.m_TypeName = cot.m_Name;
-                    importer.PrefabReplacements.Add(rep);
+                    PrefabReplacements.Add(new TypePrefabReplacement { m_TypeName = cot.m_Name });
                 }
             }
-
-            // Assign our own list of prefab replacements
-            m_PrefabReplacements = importer.PrefabReplacements;
         }
 
         public GameObject GetPrefabReplacement(string type)
@@ -146,45 +185,6 @@ namespace SuperTiled2Unity.Editor
             }
 
             return null;
-        }
-
-        public static ST2USettings LoadSettings()
-        {
-            // Find the first ST2U setting asset
-            const string search = "t:ST2USettings";
-            return AssetDatabaseEx.LoadFirstAssetByFilter<ST2USettings>(search);
-        }
-
-        public static SuperIcons LoadIcons()
-        {
-            const string search = "t:SuperIcons";
-            return AssetDatabaseEx.LoadFirstAssetByFilter<SuperIcons>(search);
-        }
-
-        [MenuItem("Edit/Project Settings/SuperTiled2Unity Settings", false)]
-        private static void SelectProjectSettings()
-        {
-            var asset = LoadSettings();
-            if (asset != null)
-            {
-                Selection.activeObject = asset;
-                EditorUtility.FocusProjectWindow();
-                EditorGUIUtility.PingObject(asset);
-            }
-            else
-            {
-                Debug.LogWarningFormat("SuperTiled2Unity settings asset not found. Was it deleted? Please reinstall Super Tiled2Unity.");
-            }
-        }
-
-        // This is only invoked by a deployment batch file
-        private static void DeploySuperTiled2Unity()
-        {
-            var settings = ST2USettings.LoadSettings();
-            var path = string.Format("{0}/../../deploy/SuperTiled2Unity.{1}.unitypackage", Application.dataPath, settings.Version);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            AssetDatabase.ExportPackage("Assets/SuperTiled2Unity", path, ExportPackageOptions.Recurse);
         }
     }
 }

@@ -62,7 +62,7 @@ namespace SuperTiled2Unity.Editor
             EditorGUILayout.Space();
             ShowCustomImporterGui();
 
-            ApplyRevertGUI();
+            InternalApplyRevertGUI();
         }
 
         protected override void ResetValues()
@@ -89,10 +89,8 @@ namespace SuperTiled2Unity.Editor
             var importerTypes = new List<string>();
 
             // Enumerate all CustomTmxImporter classes that *do not* have the auto importer attribute on them
-            var baseType = typeof(CustomTmxImporter);
-            var customTypes = Assembly.GetAssembly(baseType).
-                GetTypes().
-                Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(baseType)).
+            var customTypes = AppDomain.CurrentDomain.GetAllDerivedTypes<CustomTmxImporter>().
+                Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(CustomTmxImporter))).
                 Where(t => t.GetCustomAttributes(typeof(AutoCustomTmxImporterAttribute), true).Length == 0).
                 OrderBy(t => t.GetDisplayName());
 
@@ -146,7 +144,7 @@ namespace SuperTiled2Unity.Editor
                         EditorGUILayout.LabelField(t.GetDisplayName());
                     }
 
-                    EditorGUILayout.HelpBox("Auto Importers are custom importers that run on automatically on every exported Tiled map. Order is controlled by the AutoCustomImporterAttribute.", MessageType.None);
+                    EditorGUILayout.HelpBox("Auto Importers are custom importers that run on automatically on every exported Tiled map. Order is controlled by the AutoCustomTmxImporterAttribute.", MessageType.None);
                 }
             }
         }

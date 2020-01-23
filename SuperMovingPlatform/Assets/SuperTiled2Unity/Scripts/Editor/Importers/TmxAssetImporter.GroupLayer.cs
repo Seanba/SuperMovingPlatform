@@ -9,17 +9,22 @@ namespace SuperTiled2Unity.Editor
 {
     public partial class TmxAssetImporter
     {
-        private GameObject ProcessGroupLayer(GameObject goParent, XElement xGroup)
+        private SuperLayer ProcessGroupLayer(GameObject goParent, XElement xGroup)
         {
             var groupLayerComponent = goParent.AddSuperLayerGameObject<SuperGroupLayer>(new SuperGroupLayerLoader(xGroup), SuperImportContext);
             AddSuperCustomProperties(groupLayerComponent.gameObject, xGroup.Element("properties"));
 
             // Group layers can contain other layers
             RendererSorter.BeginGroupLayer(groupLayerComponent);
-            ProcessMapLayers(groupLayerComponent.gameObject, xGroup);
+
+            using (SuperImportContext.BeginIsTriggerOverride(groupLayerComponent.gameObject))
+            {
+                ProcessMapLayers(groupLayerComponent.gameObject, xGroup);
+            }
+
             RendererSorter.EndGroupLayer();
 
-            return groupLayerComponent.gameObject;
+            return groupLayerComponent;
         }
     }
 }

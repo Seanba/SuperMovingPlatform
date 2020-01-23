@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -17,16 +17,13 @@ namespace SuperMovingPlatform
         public Vector2 m_InitialDirection = Vector2.one;
 
         // The path of this platform is made up of points from an edge collider
-        [SerializeField, HideInInspector]
-        private Vector2[] m_Points;
+        public Vector2[] m_Points;
 
         // Our current index between two edges of a path
-        [SerializeField, HideInInspector]
-        private int m_CurrentPointIndex = -1;
+        public int m_CurrentPointIndex = -1;
 
         // How we are going to advance through our edges (-1 or 1)
-        [SerializeField, HideInInspector]
-        private int m_IndexAdvance = 1;
+        public int m_IndexAdvance = 1;
 
         public bool AssignTrackIfClose(EdgeCollider2D track)
         {
@@ -36,7 +33,8 @@ namespace SuperMovingPlatform
                 return false;
             }
 
-            var points = track.points;
+            // Get the points of the track in world position
+            var points = track.points.Select(pt => pt + (Vector2)track.transform.position).ToArray();
             Assert.IsTrue(points.Length > 1);
 
             var pos = gameObject.transform.position;

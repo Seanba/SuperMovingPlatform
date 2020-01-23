@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
 using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Tilemaps;
 
 // All tiled assets we want imported should use this class
@@ -16,9 +11,9 @@ namespace SuperTiled2Unity.Editor
 {
     public abstract class TiledAssetImporter : SuperImporter
     {
-        static private string m_ReportedVersion = string.Empty;
-
         [SerializeField] private float m_PixelsPerUnit = 0.0f;
+        public float PixelsPerUnit { get { return m_PixelsPerUnit; } }
+
         [SerializeField] private int m_EdgesPerEllipse = 0;
 
 #pragma warning disable 414
@@ -74,8 +69,16 @@ namespace SuperTiled2Unity.Editor
             CheckSortingLayerName(sortLayerName);
         }
 
-        public void AssignMaterial(Renderer renderer)
+        public void AssignMaterial(Renderer renderer, string match)
         {
+            // Do we have a registered material match?
+            var matchedMaterial = SuperImportContext.Settings.MaterialMatchings.FirstOrDefault(m => m.m_LayerName.Equals(match, StringComparison.OrdinalIgnoreCase));
+            if (matchedMaterial != null)
+            {
+                renderer.material = matchedMaterial.m_Material;
+                return;
+            }
+
             // Has the user chosen to override the material used for our tilemaps and sprite objects?
             if (SuperImportContext.Settings.DefaultMaterial != null)
             {
@@ -83,15 +86,29 @@ namespace SuperTiled2Unity.Editor
             }
         }
 
-        public override string GetReportHeader()
+        public void ApplyTemplateToObject(XElement xObject)
         {
-            string version = m_ReportedVersion;
-            if (string.IsNullOrEmpty(version))
+            var template = xObject.GetAttributeAs("template", "");
+            if (!string.IsNullOrEmpty(template))
             {
-                version = "unknown";
+                var asset = RequestAssetAtPath<ObjectTemplate>(template);
+                if (asset != null)
+                {
+                    xObject.CombineWithTemplate(asset.m_ObjectXml);
+                }
+                else
+                {
+                    ReportError("Missing template file: {0}", template);
+                }
             }
+        }
 
-            return string.Format("SuperTiled2Unity version: {0}, Unity version: {1}", version, Application.unityVersion);
+        public void ApplyDefaultSettings()
+        {
+            var settings = ST2USettings.GetOrCreateST2USettings();
+            m_PixelsPerUnit = settings.PixelsPerUnit;
+            m_EdgesPerEllipse = settings.EdgesPerEllipse;
+            EditorUtility.SetDirty(this);
         }
 
         protected override void InternalOnImportAsset()
@@ -110,7 +127,7 @@ namespace SuperTiled2Unity.Editor
         {
             // Do we have a 'unity:tag' property?
             CustomProperty prop;
-            if (properties.TryGetCustomProperty("unity:tag", out prop))
+            if (properties.TryGetCustomProperty(StringConstants.Unity_Tag, out prop))
             {
                 string tag = prop.m_Value;
                 CheckTagName(tag);
@@ -122,7 +139,7 @@ namespace SuperTiled2Unity.Editor
         {
             // Do we have a 'unity:layer' property?
             CustomProperty prop;
-            if (properties.TryGetCustomProperty("unity:layer", out prop))
+            if (properties.TryGetCustomProperty(StringConstants.Unity_Layer, out prop))
             {
                 string layer = prop.m_Value;
                 if (!UnityEditorInternal.InternalEditorUtility.layers.Contains(layer))
@@ -148,30 +165,26 @@ namespace SuperTiled2Unity.Editor
 
         private void WrapImportContext(AssetImportContext ctx)
         {
-            var settings = ST2USettings.LoadSettings();
-            if (settings == null)
-            {
-                settings = ScriptableObject.CreateInstance<ST2USettings>();
-            }
-
-            var icons = ST2USettings.LoadIcons();
-            if (icons == null)
-            {
-                icons = ScriptableObject.CreateInstance<SuperIcons>();
-            }
+            var settings = ST2USettings.GetOrCreateST2USettings();
+            settings.RefreshCustomObjectTypes();
 
             // Create a copy of our settings that we can override based on importer settings
-            settings = GameObject.Instantiate<ST2USettings>(settings);
-            OverrideSettings(settings);
+            settings = Instantiate(settings);
 
-            m_ReportedVersion = settings.Version;
-            SuperImportContext = new SuperImportContext(ctx, settings, icons);
-        }
+            if (m_PixelsPerUnit == 0)
+            {
+                m_PixelsPerUnit = settings.PixelsPerUnit;
+            }
 
-        private void OverrideSettings(ST2USettings settings)
-        {
-            settings.DefaultOrOverride_PixelsPerUnit(ref m_PixelsPerUnit);
-            settings.DefaultOrOverride_EdgesPerEllipse(ref m_EdgesPerEllipse);
+            if (m_EdgesPerEllipse == 0)
+            {
+                m_EdgesPerEllipse = settings.EdgesPerEllipse;
+            }
+
+            settings.PixelsPerUnit = m_PixelsPerUnit;
+            settings.EdgesPerEllipse = m_EdgesPerEllipse;
+
+            SuperImportContext = new SuperImportContext(ctx, settings);
         }
     }
 }

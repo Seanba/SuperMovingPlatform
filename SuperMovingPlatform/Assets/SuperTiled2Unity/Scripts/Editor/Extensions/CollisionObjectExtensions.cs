@@ -34,7 +34,7 @@ namespace SuperTiled2Unity.Editor
             var addedCollider = go.GetComponent<Collider2D>();
             if (addedCollider != null)
             {
-                addedCollider.isTrigger = collision.m_IsTrigger;
+                addedCollider.isTrigger = importContext.GetIsTriggerOverridable(collision.m_IsTrigger);
             }
 
             goParent.AddChildWithUniqueName(go);
@@ -43,7 +43,7 @@ namespace SuperTiled2Unity.Editor
         private static void AddPolygonCollider(GameObject go, CollisionObject collision, SuperTile tile, SuperImportContext importContext)
         {
             // Note that polygons may need to be decomposed into convex parts
-            var points = importContext.MakePoints(collision.Points);
+            var points = importContext.MakePointsPPU(collision.Points);
 
             // Triangulate the polygon points
             var triangulator = new Triangulator();
@@ -53,20 +53,13 @@ namespace SuperTiled2Unity.Editor
             var composition = new ComposeConvexPolygons();
             var convexPolygons = composition.Compose(triangles);
 
-            PolygonUtils.AddCompositePolygonCollider(go, convexPolygons);
-
-            // Position is from top-left corner
-            float height = importContext.MakeScalar(tile.m_Height);
-            go.transform.localPosition = new Vector3(0, height, 0);
+            PolygonUtils.AddCompositePolygonCollider(go, convexPolygons, importContext);
         }
 
         private static void AddEdgeCollider(GameObject go, CollisionObject collision, SuperTile tile, SuperImportContext importContext)
         {
             var edge = go.AddComponent<EdgeCollider2D>();
-            edge.points = importContext.MakePoints(collision.Points);
-
-            float height = importContext.MakeScalar(tile.m_Height);
-            go.transform.localPosition = new Vector3(0, height, 0);
+            edge.points = importContext.MakePointsPPU(collision.Points);
 
             go.AddComponent<SuperColliderComponent>();
         }
@@ -77,13 +70,12 @@ namespace SuperTiled2Unity.Editor
             if (collision.m_Size.x == collision.m_Size.y)
             {
                 var cirlce = go.AddComponent<CircleCollider2D>();
-                cirlce.offset = importContext.MakePoint(collision.m_Size) * 0.5f;
+                cirlce.offset = importContext.MakePointPPU(collision.m_Size.x, -collision.m_Size.y) * 0.5f;
                 cirlce.radius = importContext.MakeScalar(collision.m_Size.x) * 0.5f;
 
-                float height = importContext.MakeScalar(tile.m_Height);
                 var xpos = importContext.MakeScalar(collision.m_Position.x);
                 var ypos = importContext.MakeScalar(collision.m_Position.y);
-                go.transform.localPosition = new Vector3(xpos, height - ypos);
+                go.transform.localPosition = new Vector3(xpos, ypos);
                 go.transform.localEulerAngles = new Vector3(0, 0, importContext.MakeRotation(collision.m_Rotation));
 
                 go.AddComponent<SuperColliderComponent>();
@@ -97,13 +89,13 @@ namespace SuperTiled2Unity.Editor
         private static void AddBoxCollider(GameObject go, CollisionObject collision, SuperTile tile, SuperImportContext importContext)
         {
             var box = go.AddComponent<BoxCollider2D>();
-            box.offset = importContext.MakePoint(collision.m_Size) * 0.5f;
+            box.offset = importContext.MakePointPPU(collision.m_Size.x, -collision.m_Size.y) * 0.5f;
             box.size = importContext.MakeSize(collision.m_Size);
 
-            float height = importContext.MakeScalar(tile.m_Height);
             var xpos = importContext.MakeScalar(collision.m_Position.x);
             var ypos = importContext.MakeScalar(collision.m_Position.y);
-            go.transform.localPosition = new Vector3(xpos, height - ypos);
+
+            go.transform.localPosition = new Vector3(xpos, ypos);
             go.transform.localEulerAngles = new Vector3(0, 0, importContext.MakeRotation(collision.m_Rotation));
 
             go.AddComponent<SuperColliderComponent>();

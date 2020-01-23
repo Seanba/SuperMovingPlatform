@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
 using UnityEngine;
 
@@ -86,6 +84,23 @@ namespace SuperTiled2Unity.Editor
             return element.GetAttributeAs<T>(name, default(T));
         }
 
+        public static T GetPropertyAttributeAs<T>(this XElement element, string name, T defaultValue) where T : IConvertible
+        {
+            var xProperties = element.Element("properties");
+            if (xProperties != null)
+            {
+                foreach (var xProperty in xProperties.Elements("property"))
+                {
+                    if (string.Equals(xProperty.GetAttributeAs<string>("name"), name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return xProperty.GetAttributeAs<T>("value", defaultValue);
+                    }
+                }
+            }
+
+            return defaultValue;
+        }
+
         // Helper method to combine two elements
         public static void CombineWithTemplate(this XElement xObject, string template)
         {
@@ -128,7 +143,7 @@ namespace SuperTiled2Unity.Editor
             // Collect the properties on the source, overriding by named key
             foreach (var prop in xObject.Descendants("property"))
             {
-                properties.Add(prop.GetAttributeAs<string>("name"), prop);
+                properties[prop.GetAttributeAs<string>("name")] = prop;
             }
 
             // Put the combined properties into the object

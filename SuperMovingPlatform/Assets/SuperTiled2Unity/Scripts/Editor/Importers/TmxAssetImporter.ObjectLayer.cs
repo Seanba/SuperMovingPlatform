@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 using UnityEngine;
 
 namespace SuperTiled2Unity.Editor
 {
     partial class TmxAssetImporter
     {
-        private GameObject ProcessObjectLayer(GameObject goParent, XElement xObjectLayer)
+        private SuperLayer ProcessObjectLayer(GameObject goParent, XElement xObjectLayer)
         {
             // Have our super object layer loader take care of things
             var loader = new SuperObjectLayerLoader(xObjectLayer);
@@ -24,10 +20,15 @@ namespace SuperTiled2Unity.Editor
             AddSuperCustomProperties(objectLayer.gameObject, xObjectLayer.Element("properties"));
 
             RendererSorter.BeginObjectLayer(objectLayer);
-            loader.CreateObjects();
+
+            using (SuperImportContext.BeginIsTriggerOverride(objectLayer.gameObject))
+            {
+                loader.CreateObjects();
+            }
+
             RendererSorter.EndObjectLayer(objectLayer);
 
-            return objectLayer.gameObject;
+            return objectLayer;
         }
 
         private ColliderFactory CreateColliderFactory()
